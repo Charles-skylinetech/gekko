@@ -125,7 +125,9 @@
           ></a-button>
         </a-col>
       </a-row>
-
+      <a-form-item>
+        <a-switch checked-children="Admin User" v-model="isProvider" un-checked-children="Common User" default-checked />
+      </a-form-item>
       <a-form-item>
         <a-button
           size="large"
@@ -172,7 +174,7 @@ export default {
   data() {
     return {
       form: this.$form.createForm(this),
-
+      isProvider: true,
       state: {
         time: 60,
         smsSendBtn: false,
@@ -265,6 +267,7 @@ export default {
       validateFields({ force: true }, (err, values) => {
         if (!err) {
           state.passwordLevelChecked = false
+          values.isProvider = this.isProvider
           register(values)
             .then(res => {
               if (res.code === 200) {
