@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import { login, logout } from '@/api/login'
-import { ACCESS_TOKEN } from '@/store/mutation-types'
+import { ACCESS_TOKEN, ROLES } from '@/store/mutation-types'
 import { welcome } from '@/utils/util'
 
 const user = {
@@ -39,6 +39,8 @@ const user = {
         login(userInfo).then(response => {
           const result = response.result
           Vue.ls.set(ACCESS_TOKEN, 'result.token', 7 * 24 * 60 * 60 * 1000)
+          Vue.ls.set(ROLES, result.isProvider, 7 * 24 * 60 * 60 * 1000)
+
           commit('SET_TOKEN', result.personalId)
           commit('SET_INFO', result)
           commit('SET_NAME', { name: `${result.firstName} ${result.lastName}`, welcome: welcome() })
@@ -52,40 +54,15 @@ const user = {
     // 获取用户信息
     GetInfo({ commit }) {
       return new Promise((resolve, reject) => {
-        // commit('SET_ROLES', ['user'])
-        // getInfo().then(response => {
-        // const result = response.result
-
-        // if (result.role && result.role.permissions.length > 0) {
-        //   const role = result.role
-        //   role.permissions = result.role.permissions
-        //   role.permissions.map(per => {
-        //     if (per.actionEntitySet != null && per.actionEntitySet.length > 0) {
-        //       const action = per.actionEntitySet.map(action => { return action.action })
-        //       per.actionList = action
-        //     }
-        //   })
-        //   role.permissionList = role.permissions.map(permission => { return permission.permissionId })
-
-        // commit('SET_INFO', result)
-        // } else {
-        //   reject(new Error('getInfo: roles must be a non-null array !'))
-        // }
-
-        // commit('SET_NAME', { name: result.firstName, welcome: welcome() })
         commit('SET_AVATAR', '/avatar2.jpg')
 
-        if (user.state.info.isProvider) {
+        if (Vue.ls.get(ROLES)) {
           commit('SET_ROLES', ['admin'])
           resolve({ role: ['admin'] })
         } else {
           commit('SET_ROLES', ['user'])
           resolve({ role: ['user'] })
         }
-
-        // }).catch(error => {
-        // reject(error)
-        // })
       })
     },
 
@@ -99,6 +76,7 @@ const user = {
         }).finally(() => {
           commit('SET_TOKEN', '')
           commit('SET_ROLES', [])
+          Vue.ls.remove(ROLES)
           Vue.ls.remove(ACCESS_TOKEN)
         })
       })
